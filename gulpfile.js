@@ -8,6 +8,10 @@ var rename = require('gulp-rename');
 var sh = require('shelljs');
 var karma = require('karma').server;
 
+// var server = new Server(config, [done]);
+// server.start();
+
+
 var paths = {
   sass: ['./scss/**/*.scss']
 };

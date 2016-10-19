@@ -3,7 +3,7 @@ describe('Controllers', function(){
 
   beforeEach(module('starter.controllers'));
 
-  beforeEach(inject(function($rootScope, $controller){
+  beforeEach(inject(function($rootScope, $controller) {
     scope = $rootScope.$new();
     $controller('AccountCtrl', {$scope: scope});
   }));
