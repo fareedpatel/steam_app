@@ -1,6 +1,5 @@
-describe('starter.services', function() {
-      var friendService;
-
+describe('Services', function() {
+  var Friends;
 
   beforeEach(module('starter.services'));
 
