@@ -1,7 +1,7 @@
 describe('Services', function() {
   var Friends;
 
-  beforeEach(module('starter.services'));
+  beforeEach(module('scheduling.services'));
 
   beforeEach(inject(function(_Friends_) {
     Friends = _Friends_;
@@ -16,13 +16,13 @@ describe('Services', function() {
   }));
 
   it('has Max as a friend with an ID 1', inject(function(Friends) {
-    var oneFriend =  {
+    var oneFriendMock =  {
       id: 1,
       name: 'Max Lynx',
       lastText: 'Hey, it\'s me',
       face: 'img/max.png'
     };
-  expect(Friends.get(1).name).toEqual(oneFriend.name);
+  expect(Friends.get(1).name).toEqual(oneFriendMock.name);
 
   }));
 });

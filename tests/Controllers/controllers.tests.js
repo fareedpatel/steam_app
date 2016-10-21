@@ -1,7 +1,7 @@
 describe('Controllers', function(){
   var scope;
 
-  beforeEach(module('starter.controllers'));
+  beforeEach(module('scheduling.controllers'));
 
   beforeEach(inject(function($rootScope, $controller) {
     scope = $rootScope.$new();
