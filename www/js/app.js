@@ -5,9 +5,11 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('scheduling', ['ionic', 'firebase','scheduling.controllers', 'scheduling.services'])
+angular.module('schedulingList', ['ionic', 'firebase','schedulingList.controllers'])
 
-.run(function($ionicPlatform) {
+  // 'scheduling.services' is removed
+
+.run(function($ionicPlatform, $rootScope, $firebaseAuth, $firebase, $window, $ionicLoading) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -23,7 +25,7 @@ angular.module('scheduling', ['ionic', 'firebase','scheduling.controllers', 'sch
 
 
     $rootScope.userEmail = null;
-    $rootScope.baseUrl = 'http://bucketlist-app.firebaseio.com';
+    $rootScope.baseUrl = 'https://steamdemo-8c203.firebaseio.com';
     var authRef = new Firebase($rootScope.baseUrl);
     $rootScope.auth = $firebaseAuth(authRef);
 
@@ -110,31 +112,31 @@ angular.module('scheduling', ['ionic', 'firebase','scheduling.controllers', 'sch
     }
   })
 
-.state ('bucket', {
-  url: "/bucket",
+.state ('', {
+  url: "/scheduling",
   abstract: true,
-  templateUrl: "templates/bucket.html"
+  templateUrl: "templates/scheduling.html"
 })
 
-.state('bucket.list', {
+.state('scheduling.list', {
   url: '/list',
   views: {
-    'bucket-list': {
-    templateUrl: 'templates/bucket-list.html',
+    'scheduling-list': {
+    templateUrl: 'templates/scheduling-list.html',
     controller: 'myListCtrl'
     }
   }
 })
 
-.state('bucket.completed', {
+.state('scheduling.completed', {
   url: '/completed',
   views: {
-    'bucket-completed': {
-      templateUrl: 'templates/bucket-completed.html',
+    'scheduling-completed': {
+      templateUrl: 'templates/scheduling-completed.html',
       controller: 'completedCtrl'
     }
   }
-})
+});
 
 
 
