@@ -1,6 +1,6 @@
-angular.module('schedulingList.controllers', [])
+var schedulingApp = angular.module('schedulingList.controllers', []);
 
-.controller('SignUpCtrl', [
+schedulingApp.controller('SignUpCtrl', [
   '$scope', '$rootScope', 'firebaseAuth', '$window',
   function ($scope, $rootScope, $firebaseAuth, $window) {
     $scope.user = {
@@ -39,7 +39,7 @@ angular.module('schedulingList.controllers', [])
   }
 ]);
 
-.controller('SignInCtrl', [
+schedulingApp.controller('SignInCtrl', [
   '$scope', '$rootScope', '$firebaseAuth', '$window',
   function ($scope, $rootScope, $firebaseAuth, $window) {
      // check session
@@ -83,7 +83,7 @@ angular.module('schedulingList.controllers', [])
   }
 ]);
 
-.controller('myListCtrl', function($rootScope, $scope, $window, $ionicModal, $firebase) {
+schedulingApp.controller('myListCtrl', function($rootScope, $scope, $window, $ionicModal, $firebase) {
   $rootScope.show("Please wait... Processing");
   $scope.list = [];
   var schedulingListRef = new Firebase($rootScope.baseUrl + escapeEmailAddress($rootScope.userEmail));
@@ -94,14 +94,14 @@ angular.module('schedulingList.controllers', [])
 
     for (var key in data) {
       if (data.hasOwnProperty(key)) {
-        if (data[key].isCompleted == false) {
+        if (data[key].isCompleted === false) {
           data[key].key = key;
           $scope.list.push(data[key]);
         }
       }
     }
 
-    if ($scope.list.length == 0) {
+    if ($scope.list.length === 0) {
       $scope.noData = true;
     } else {
       $scope.noData = false;
@@ -157,7 +157,7 @@ function escapeEmailAddress(email) {
 }
 
 
-.controller('newCtrl', function($rootScope, $scope, $window, $firebase) {
+schedulingApp.controller('newCtrl', function($rootScope, $scope, $window, $firebase) {
   $scope.data = {
     item: ""
   };
