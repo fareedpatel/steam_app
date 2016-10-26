@@ -1,28 +1,219 @@
-angular.module('starter.controllers', [])
+var schedulingApp = angular.module('schedulingList.controllers', []);
 
-.controller('DashCtrl', function($scope) {})
+schedulingApp.controller('SignUpCtrl', [
+  '$scope', '$rootScope', 'firebaseAuth', '$window',
+  function ($scope, $rootScope, $firebaseAuth, $window) {
+    $scope.user = {
+      email: "",
+      password: ""
+    };
+    $scope.createUser = function() {
+      var email = this.user.email;
+      var password = this.user.password;
 
-.controller('ChatsCtrl', function($scope, Chats) {
-  // With the new view caching in Ionic, Controllers are only called
-  // when they are recreated or on app start, instead of every page change.
-  // To listen for when this page is active (for example, to refresh data),
-  // listen for the $ionicView.enter event:
-  //
-  //$scope.$on('$ionicView.enter', function(e) {
-  //});
+      if(!email || !password) {
+        $rootScope.notify("Please enter valid credentials");
+        return false;
+      }
+      $rootScope.show('Please wait.. Registering');
+      $rootScope.auth.$createUser(email, password, function(error, user) {
+        if (!error) {
+          $rootScope.hide();
+          $rootScope.userEmail = user.email;
+          $window.location.href = ('#/scheduling/list');
+        }
+        else {
+          $rootScope.hide();
+          if(error.code == 'INVALID_EMAIL') {
+            $rootScope.notify('Invalid Email Address');
+          }
+          else if (error.code == 'EMAIL_TAKEN') {
+            $rootScope.notfy('Email address already taken');
+          }
+          else {
+            $rootScope.notify('Oops Somehting went wrong. Please try again later');
+          }
+        }
+      });
+    };
+  }
+]);
 
-  $scope.chats = Chats.all();
-  $scope.remove = function(chat) {
-    Chats.remove(chat);
+schedulingApp.controller('SignInCtrl', [
+  '$scope', '$rootScope', '$firebaseAuth', '$window',
+  function ($scope, $rootScope, $firebaseAuth, $window) {
+     // check session
+     $rootScope.checkSession();
+     $scope.user = {
+        email: "",
+        password: ""
+     };
+     $scope.validateUser = function () {
+        $rootScope.show('Please wait.. Authenticating');
+        var email = this.user.email;
+        var password = this.user.password;
+        if (!email || !password) {
+           $rootScope.notify("Please enter valid credentials");
+           return false;
+        }
+        $rootScope.auth.$login('password', {
+           email: email,
+           password: password
+        })
+        .then(function (user) {
+          $rootScope.hide();
+          $rootScope.userEmail = user.email;
+          $window.location.href = ('#/scheduling/list');
+        }, function (error) {
+          $rootScope.hide();
+          if (error.code == 'INVALID_EMAIL') {
+            $rootScope.notify('Invalid Email Address');
+          }
+          else if (error.code == 'INVALID_PASSWORD') {
+            $rootScope.notify('Invalid Password');
+          }
+          else if (error.code == 'INVALID_USER') {
+            $rootScope.notify('Invalid User');
+          }
+          else {
+            $rootScope.notify('Oops something went wrong. Please try again later');
+          }
+        });
+     };
+  }
+]);
+
+schedulingApp.controller('myListCtrl', function($rootScope, $scope, $window, $ionicModal, $firebase) {
+  $rootScope.show("Please wait... Processing");
+  $scope.list = [];
+  var schedulingListRef = new Firebase($rootScope.baseUrl + escapeEmailAddress($rootScope.userEmail));
+  schedulingListRef.on('value', function(snapshot) {
+    var data = snapshot.val();
+
+    $scope.list = [];
+
+    for (var key in data) {
+      if (data.hasOwnProperty(key)) {
+        if (data[key].isCompleted === false) {
+          data[key].key = key;
+          $scope.list.push(data[key]);
+        }
+      }
+    }
+
+    if ($scope.list.length === 0) {
+      $scope.noData = true;
+    } else {
+      $scope.noData = false;
+    }
+    $rootScope.hide();
+  });
+
+  $ionicModal.fromTemplateUrl('templates/newItem.html', function(modal) {
+    $scope.newTemplate = modal;
+  });
+
+  $scope.newTask = function() {
+    $scope.newTemplate.show();
   };
-})
 
-.controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
-  $scope.chat = Chats.get($stateParams.chatId);
-})
+  $scope.markCompleted = function(key) {
+    $rootScope.show("Please wait... Updating List");
+    var itemRef = new Firebase($rootScope.baseUrl + escapeEmailAddress($rootScope.userEmail) + '/' + key);
+    itemRef.update({
+      isCompleted: true
+    }, function(error) {
+      if (error) {
+        $rootScope.hide();
+        $rootScope.notify('Oops! something went wrong. Try again later');
+      } else {
+        $rootScope.hide();
+        $rootScope.notify('Successfully updated');
+      }
+    });
+  };
 
-.controller('AccountCtrl', function($scope) {
-  $scope.settings = {
-    enableFriends: true
+  $scope.deleteItem = function(key) {
+    $rootScope.show("Please wait... Deleting from List");
+    var itemRef = new Firebase($rootScope.baseUrl + escapeEmailAddress($rootScope.userEmail));
+    SchedulingListRef.child(key).remove(function(error) {
+      if (error) {
+        $rootScope.hide();
+        $rootScope.notify('Oops! something went wrong. Try again later');
+      } else {
+        $rootScope.hide();
+        $rootScope.notify('Successfully deleted');
+      }
+    });
   };
 });
+
+function escapeEmailAddress(email) {
+  if (!email) return false;
+  // Replace '.' (not allowed in a Firebase key) with ','
+  email = email.toLowerCase();
+  email = email.replace(/\./g, ',');
+  return email.trim();
+}
+
+
+schedulingApp.controller('newCtrl', function($rootScope, $scope, $window, $firebase) {
+  $scope.data = {
+    item: ""
+  };
+
+  $scope.close = function() {
+    $scope.modal.hide();
+  };
+
+  $scope.createNew = function() {
+    var item = this.data.item;
+
+    if (!item) return;
+
+    $scope.modal.hide();
+    $rootScope.show();
+    $rootScope.show("Please wait... Creating new");
+
+    var form = {
+      item: item,
+      isCompleted: false,
+      created: Date.now(),
+      updated: Date.now()
+    };
+
+    var SchedulingListRef = new Firebase($rootScope.baseUrl + escapeEmailAddress($rootScope.userEmail));
+    $firebase(schedulingListRef).$add(form);
+    $rootScope.hide();
+  };
+});
+
+
+
+
+
+
+// .controller('ChatsCtrl', function($scope, Chats) {
+//   // With the new view caching in Ionic, Controllers are only called
+//   // when they are recreated or on app start, instead of every page change.
+//   // To listen for when this page is active (for example, to refresh data),
+//   // listen for the $ionicView.enter event:
+//   //
+//   //$scope.$on('$ionicView.enter', function(e) {
+//   //});
+
+//   $scope.chats = Chats.all();
+//   $scope.remove = function(chat) {
+//     Chats.remove(chat);
+//   };
+// })
+
+// .controller('ChatDetailCtrl', function($scope, $stateParams, Chats) {
+//   $scope.chat = Chats.get($stateParams.chatId);
+// })
+
+// .controller('AccountCtrl', function($scope) {
+//   $scope.settings = {
+//     enableFriends: true
+//   };
+// });

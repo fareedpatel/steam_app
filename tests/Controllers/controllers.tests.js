@@ -1,14 +1,7 @@
-// var angular = require('angular');
-// angular.module('myMod', [
-//   require('angular-animate'),
-//   require('angular-mocks/ngMock'),
-//   require('angular-mocks/ngAnimateMock')
-// ]);
-
 describe('Controllers', function(){
   var scope;
 
-  beforeEach(module('starter.controllers'));
+  beforeEach(module('scheduling.controllers'));
 
   beforeEach(inject(function($rootScope, $controller) {
     scope = $rootScope.$new();
@@ -18,4 +11,5 @@ describe('Controllers', function(){
   it('should have friends enabled', function(){
     expect(scope.settings.enableFriends).toEqual(true);
   });
+
 });

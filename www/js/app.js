@@ -5,9 +5,11 @@
 // the 2nd parameter is an array of 'requires'
 // 'starter.services' is found in services.js
 // 'starter.controllers' is found in controllers.js
-angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
+angular.module('schedulingList', ['ionic', 'firebase','schedulingList.controllers'])
 
-.run(function($ionicPlatform) {
+  // 'scheduling.services' is removed
+
+.run(function($ionicPlatform, $rootScope, $firebaseAuth, $firebase, $window, $ionicLoading) {
   $ionicPlatform.ready(function() {
     // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
     // for form inputs)
@@ -20,8 +22,59 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
       // org.apache.cordova.statusbar required
       StatusBar.styleDefault();
     }
+
+
+    $rootScope.userEmail = null;
+    $rootScope.baseUrl = 'https://steamdemo-8c203.firebaseio.com';
+    var authRef = new Firebase($rootScope.baseUrl);
+    $rootScope.auth = $firebaseAuth(authRef);
+
+    $rootScope.show = function(text) {
+      $rootScope.loading = $ionicLoading.show({
+        content: text ? text : 'Loading..',
+        animation: 'fade-in',
+        showBackdrop: true,
+        maxWidth: 200,
+        showDelay: 0
+      });
+    };
+
+    $rootScope.hide = function() {
+      $ionicLoading.hide();
+    };
+
+    $rootScope.notify = function(text) {
+      $rootScope.show(text);
+      $window.setTime(function(){
+        $rootScope.hide();
+      }, 1999);
+    };
+
+    $rootScope.logout = function() {
+      $rootScope.auth.$logout();
+      $rootScope.checkSession();
+    };
+
+    $rootScope.checkSession = function() {
+      var auth = new FirebaseSimpleLogin(authRef, function(error, user) {
+        if (error) {
+          //no action yet.. redirect to default route
+          $rootScope.userEmail = null;
+          $window.location.href = '#/auth/signin';
+        } else if (user) {
+          // user authenticated with Firebase
+          $rootScope.userEmail = user.email;
+          $window.location.href = ('#/scheduling/list');
+        } else {
+        // user is logged out
+          $rootScope.userEmail = null;
+          $window.location.href = '#auth/signin';
+        }
+      });
+    };
   });
 })
+
 
 .config(function($stateProvider, $urlRouterProvider) {
 
@@ -31,55 +84,111 @@ angular.module('starter', ['ionic', 'starter.controllers', 'starter.services'])
   // Each state's controller can be found in controllers.js
   $stateProvider
 
-  // setup an abstract state for the tabs directive
-    .state('tab', {
-    url: '/tab',
+  // setup an abstract state for the auth directive
+
+  .state('auth', {
+    url: "/auth",
     abstract: true,
-    templateUrl: 'templates/tabs.html'
+    templateUrl: "templates/auth.html"
   })
 
-  // Each tab has its own nav history stack:
-
-  .state('tab.dash', {
-    url: '/dash',
+  .state('auth.signin', {
+    url: '/signin',
     views: {
-      'tab-dash': {
-        templateUrl: 'templates/tab-dash.html',
-        controller: 'DashCtrl'
+      'auth-signin' :{
+        templateUrl: 'templates/auth-signin.html',
+        controller: 'SignInCtrl'
       }
     }
   })
 
-  .state('tab.chats', {
-      url: '/chats',
-      views: {
-        'tab-chats': {
-          templateUrl: 'templates/tab-chats.html',
-          controller: 'ChatsCtrl'
-        }
-      }
-    })
-    .state('tab.chat-detail', {
-      url: '/chats/:chatId',
-      views: {
-        'tab-chats': {
-          templateUrl: 'templates/chat-detail.html',
-          controller: 'ChatDetailCtrl'
-        }
-      }
-    })
-
-  .state('tab.account', {
-    url: '/account',
+  .state('auth.signup', {
+    url: '/signup',
     views: {
-      'tab-account': {
-        templateUrl: 'templates/tab-account.html',
-        controller: 'AccountCtrl'
+      'auth-signup': {
+        templateUrl: 'templates/auth-signup.html',
+        controller: 'SignUpCtrl'
       }
     }
-  });
+  })
+
+.state ('', {
+  url: "/scheduling",
+  abstract: true,
+  templateUrl: "templates/scheduling.html"
+})
+
+.state('scheduling.list', {
+  url: '/list',
+  views: {
+    'scheduling-list': {
+    templateUrl: 'templates/scheduling-list.html',
+    controller: 'myListCtrl'
+    }
+  }
+})
+
+.state('scheduling.completed', {
+  url: '/completed',
+  views: {
+    'scheduling-completed': {
+      templateUrl: 'templates/scheduling-completed.html',
+      controller: 'completedCtrl'
+    }
+  }
+});
+
+
+
+  // // setup an abstract state for the tabs directive
+  //   .state('tab', {
+  //   url: '/tab',
+  //   abstract: true,
+  //   templateUrl: 'templates/tabs.html'
+  // })
+
+  // // Each tab has its own nav history stack:
+
+  // .state('tab.dash', {
+  //   url: '/dash',
+  //   views: {
+  //     'tab-dash': {
+  //       templateUrl: 'templates/tab-dash.html',
+  //       controller: 'DashCtrl'
+  //     }
+  //   }
+  // })
+
+  // .state('tab.chats', {
+  //     url: '/chats',
+  //     views: {
+  //       'tab-chats': {
+  //         templateUrl: 'templates/tab-chats.html',
+  //         controller: 'ChatsCtrl'
+  //       }
+  //     }
+  //   })
+  //   .state('tab.chat-detail', {
+  //     url: '/chats/:chatId',
+  //     views: {
+  //       'tab-chats': {
+  //         templateUrl: 'templates/chat-detail.html',
+  //         controller: 'ChatDetailCtrl'
+  //       }
+  //     }
+  //   })
+
+  // .state('tab.account', {
+  //   url: '/account',
+  //   views: {
+  //     'tab-account': {
+  //       templateUrl: 'templates/tab-account.html',
+  //       controller: 'AccountCtrl'
+  //     }
+  //   }
+  // });
 
   // if none of the above states are matched, use this as the fallback
-  $urlRouterProvider.otherwise('/tab/dash');
-
+  // $urlRouterProvider.otherwise('/tab/dash');
+      $urlRouterProvider.otherwise('/auth/signin');
 });
